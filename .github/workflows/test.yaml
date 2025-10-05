@@ -7,26 +7,28 @@ on:
 jobs:
   test-action:
     name: Test Action
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-14, windows-2022]
+        runner: [blacksmith, blacksmith-arm]
     steps:
       - name: Checkout Action
-        uses: actions/checkout@v5.0.0
-        with:
-          path: mkdir-action
-          sparse-checkout: |
-            action.yml
-            dist
-          sparse-checkout-cone-mode: false
+        uses: actions/checkout@v4
 
-      - name: Create Directory
-        uses: ./mkdir-action
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          path: parent/child
+          version: 8
 
-      - name: Check Directory
-        shell: bash
-        run: test -d parent/child
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run Tests
+        run: pnpm test
