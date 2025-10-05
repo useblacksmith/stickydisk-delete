@@ -165,30 +165,29 @@ async function main() {
       );
     }
 
-    // Handle delete-key option.
+    // Handle delete-key option: Use the user-provided key as-is with type "stickydisk".
     if (deleteKey) {
       logInfo(`Deleting sticky disk with key: ${deleteKey}`);
       await deleteStickyDiskByKey(
-        deleteKey,
+        deleteKey, // Use the user-provided key as-is.
         stickyDiskToken,
         repoName,
         installationModelId,
         region,
-        "stickydisk", // Generic sticky disk type
+        "stickydisk", // Type for generic sticky disk.
       );
     }
 
-    // Handle delete-docker-cache option.
+    // Handle delete-docker-cache option: Use repo name (org/repo) as key with type "dockerfile".
     if (deleteDockerCache) {
       logInfo("Deleting Docker cache from sticky disk");
-      // Use the repository name as the key for Docker cache.
       await deleteStickyDiskByKey(
-        repoName,
+        repoName, // Use org/repo as the key for Docker cache.
         stickyDiskToken,
         repoName,
         installationModelId,
         region,
-        "dockerfile", // Docker build cache type
+        "dockerfile", // Type for Docker build cache.
       );
     }
   } catch (err) {

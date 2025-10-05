@@ -141,16 +141,17 @@ async function main() {
         if (!region) {
             throw new Error("BLACKSMITH_REGION environment variable is required. This should be set by the Blacksmith runner.");
         }
-        // Handle delete-key option.
+        // Handle delete-key option: Use the user-provided key as-is with type "stickydisk".
         if (deleteKey) {
             logInfo(`Deleting sticky disk with key: ${deleteKey}`);
-            await deleteStickyDiskByKey(deleteKey, stickyDiskToken, repoName, installationModelId, region, "stickydisk");
+            await deleteStickyDiskByKey(deleteKey, // Use the user-provided key as-is.
+            stickyDiskToken, repoName, installationModelId, region, "stickydisk");
         }
-        // Handle delete-docker-cache option.
+        // Handle delete-docker-cache option: Use repo name (org/repo) as key with type "dockerfile".
         if (deleteDockerCache) {
             logInfo("Deleting Docker cache from sticky disk");
-            // Use the repository name as the key for Docker cache.
-            await deleteStickyDiskByKey(repoName, stickyDiskToken, repoName, installationModelId, region, "dockerfile");
+            await deleteStickyDiskByKey(repoName, // Use org/repo as the key for Docker cache.
+            stickyDiskToken, repoName, installationModelId, region, "dockerfile");
         }
     }
     catch (err) {
