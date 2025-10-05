@@ -7,13 +7,25 @@ on:
 jobs:
   build-action:
     name: Build Action
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [blacksmith, blacksmith-arm]
     steps:
       - name: Checkout Project
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: threeal/setup-pnpm-action@v1.0.0
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
 
       - name: Install Dependencies
         run: pnpm install

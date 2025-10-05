@@ -1,15 +1,22 @@
-# TODO: Modify the following metadata according to the project's specifications.
-
-name: Mkdir Action
-author: Alfi Maulana
-description: Create a new directory
+name: Sticky Disk Delete
+author: Blacksmith
+description: Delete sticky disks programmatically through GitHub Actions
 branding:
-  icon: folder-plus
-  color: black
+  icon: trash-2
+  color: red
 inputs:
-  path:
-    description: Path of the directory to create
-    required: true
+  delete-key:
+    description: |
+      Delete a specific sticky disk by its key. The key is the unique identifier 
+      you provided when creating the sticky disk. Only one of delete-key or 
+      delete-docker-cache can be specified at a time.
+    required: false
+  delete-docker-cache:
+    description: |
+      Delete the Docker build cache (dockerfile type) for the current repository. 
+      This uses the repository name (org/repo) as the key. Only one of delete-key 
+      or delete-docker-cache can be specified at a time.
+    required: false
 runs:
   using: node24
   main: dist/main.bundle.mjs
