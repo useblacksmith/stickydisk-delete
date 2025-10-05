@@ -6,10 +6,16 @@ branding:
   color: red
 inputs:
   delete-key:
-    description: The key of the sticky disk to delete
+    description: |
+      Delete a specific sticky disk by its key. The key is the unique identifier 
+      you provided when creating the sticky disk. Only one of delete-key or 
+      delete-docker-cache can be specified at a time.
     required: false
   delete-docker-cache:
-    description: Whether to delete the Docker cache
+    description: |
+      Delete the Docker build cache (dockerfile type) for the current repository. 
+      This uses the repository name (org/repo) as the key. Only one of delete-key 
+      or delete-docker-cache can be specified at a time.
     required: false
 runs:
   using: node24
