@@ -1,0 +1,54 @@
+name: Demo Stickydisk Usage and Deletion
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  demo-stickydisk:
+    name: Demo Stickydisk with Deletion
+    runs-on: blacksmith-staging
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Mount Stickydisk
+        uses: useblacksmith/stickydisk@v1
+        with:
+          key: ${{ github.repository }}-demo-cache
+          path: ./demo-cache
+
+      - name: Write Data to Stickydisk
+        run: |
+          echo "Creating demo files in stickydisk..."
+          mkdir -p ./demo-cache/data
+          echo "Hello from stickydisk!" > ./demo-cache/data/test.txt
+          echo "Timestamp: $(date)" >> ./demo-cache/data/test.txt
+          echo "Workflow run: ${{ github.run_number }}" >> ./demo-cache/data/test.txt
+
+          # Create some additional files.
+          for i in {1..5}; do
+            echo "Sample data file $i" > ./demo-cache/data/file$i.txt
+          done
+
+          echo "Files created in stickydisk:"
+          ls -lah ./demo-cache/data/
+
+      - name: Read Data from Stickydisk
+        run: |
+          echo "Reading data from stickydisk..."
+          cat ./demo-cache/data/test.txt
+          echo ""
+          echo "Total files in cache:"
+          find ./demo-cache -type f | wc -l
+
+      - name: Delete Stickydisk
+        uses: useblacksmith/stickydisk-delete@v1
+        with:
+          delete-key: ${{ github.repository }}-demo-cache
+
+      - name: Verify Deletion
+        run: |
+          echo "Stickydisk with key '${{ github.repository }}-demo-cache' has been deleted."
+          echo "This cache will not persist to the next workflow run."
