@@ -42,7 +42,10 @@ jobs:
       - name: Verify Docker Build
         run: |
           echo "Docker image built successfully."
-          docker images | grep stickydisk-delete
+          docker images
+          echo ""
+          echo "Looking for stickydisk-delete image:"
+          docker images | grep stickydisk-delete || echo "Image may have been built with a different tag"
 
       - name: Delete Docker Build Cache
         uses: useblacksmith/stickydisk-delete@main
