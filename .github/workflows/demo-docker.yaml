@@ -19,25 +19,15 @@ jobs:
       - name: Create Sample Dockerfile
         run: |
           cat > Dockerfile << 'EOF'
-          FROM node:20-alpine
-          WORKDIR /app
+          FROM alpine:latest
 
-          # Install dependencies.
-          RUN apk add --no-cache git
+          # Create a simple hello world script.
+          RUN echo '#!/bin/sh' > /hello.sh && \
+              echo 'echo "Hello from Stickydisk Demo!"' >> /hello.sh && \
+              echo 'echo "This demonstrates Docker build cache management."' >> /hello.sh && \
+              chmod +x /hello.sh
 
-          # Copy package files.
-          COPY package.json pnpm-lock.yaml ./
-
-          # Install pnpm and dependencies.
-          RUN npm install -g pnpm && pnpm install --frozen-lockfile
-
-          # Copy source code.
-          COPY . .
-
-          # Build the application.
-          RUN pnpm build
-
-          CMD ["node", "dist/main.bundle.mjs"]
+          CMD ["/hello.sh"]
           EOF
 
       - name: Build Docker Image with Cache
