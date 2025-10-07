@@ -1,0 +1,58 @@
+name: Demo Docker Cache with Stickydisk
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  demo-docker-cache:
+    name: Demo Docker Build Cache with Deletion
+    runs-on: blacksmith-staging
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Builder
+        uses: useblacksmith/setup-docker-builder@v1
+
+      - name: Create Sample Dockerfile
+        run: |
+          cat > Dockerfile << 'EOF'
+          FROM alpine:latest
+
+          # Create a simple hello world script.
+          RUN echo '#!/bin/sh' > /hello.sh && \
+              echo 'echo "Hello from Stickydisk Demo!"' >> /hello.sh && \
+              echo 'echo "This demonstrates Docker build cache management."' >> /hello.sh && \
+              chmod +x /hello.sh
+
+          CMD ["/hello.sh"]
+          EOF
+
+      - name: Build Docker Image with Cache
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: stickydisk-delete:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify Docker Build
+        run: |
+          echo "Docker image built successfully."
+          docker images
+          echo ""
+          echo "Looking for stickydisk-delete image:"
+          docker images | grep stickydisk-delete || echo "Image may have been built with a different tag"
+
+      - name: Delete Docker Build Cache
+        uses: useblacksmith/stickydisk-delete@main
+        with:
+          delete-docker-cache: true
+
+      - name: Verify Cache Deletion
+        run: |
+          echo "Docker build cache for ${{ github.repository }} has been deleted."
+          echo "The next build will not benefit from cached layers."
