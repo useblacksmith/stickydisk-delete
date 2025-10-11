@@ -1,72 +1,115 @@
-<!-- TODO: Replace the content of this file with the new project description. -->
+# stickydisk-delete
 
-# Action Starter
+A GitHub Action for deleting sticky disks created by [useblacksmith/stickydisk](https://github.com/useblacksmith/stickydisk) in Blacksmith runners. This action provides cleanup capabilities for persistent storage volumes, helping you manage disk lifecycle and free up storage space in your workflows.
 
-A minimalist template for starting a new [GitHub Action](https://github.com/features/actions) project.
+## Overview
 
-This template provides a basic GitHub Action project containing a sample [JavaScript action](https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-javascript-action) written in [TypeScript](https://www.typescriptlang.org/), with built-in support for formatting, linting, testing, and continuous integration.
+`stickydisk-delete` is designed to work in conjunction with the `useblacksmith/stickydisk` action, which creates persistent storage volumes (sticky disks) that survive across workflow runs in Blacksmith environments. This delete action allows you to programmatically clean up these disks when they're no longer needed, preventing storage accumulation and managing costs.
 
-## Key Features
+## Features
 
-- Minimal GitHub Action project written in TypeScript with [ESM](https://nodejs.org/api/esm.html) support.
-- Uses [pnpm](https://pnpm.io/) as the package manager.
-- Supports formatting with [Prettier](https://prettier.io/), linting with [ESLint](https://eslint.org/), and testing with [Vitest](https://vitest.dev/).
-- Fixes formatting and linting during pre-commit hooks using [Lefthook](https://lefthook.dev/).
-- Preconfigured workflows for [Dependabot](https://docs.github.com/en/code-security/dependabot) and [GitHub Actions](https://github.com/features/actions).
+- Delete sticky disks by name pattern
+- Support for deleting multiple disks in a single action
+- Automatic cleanup of unused cache storage
+- Seamless integration with Blacksmith runners
+- Simple and straightforward configuration
 
 ## Usage
 
-This guide explains how to use this template to start a new GitHub Action project, from creation to release.
+### Basic Example
 
-### Create a New Project
+Delete a specific sticky disk:
 
-Follow [this link](https://github.com/new?template_name=action-starter&template_owner=threeal) to create a new project based on this template. For more information about creating a repository from a template on GitHub, refer to [this documentation](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
-
-Alternatively, you can clone this repository locally to begin using this template.
-
-### Choose a License
-
-By default, this template is [unlicensed](https://unlicense.org/). Before modifying this template, replace the [`LICENSE`](./LICENSE) file with the license to be used by the new project. For more information about licensing a repository, refer to [this documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
-
-Alternatively, you can remove the `LICENSE` file or leave it as-is to keep the new project unlicensed.
-
-### Update Project Information
-
-To replace the sample information in this template with details about your new project, complete the following steps:
-
-- Replace the content of this [`README.md`](./README.md) file with a description of the new project. For more information on adding READMEs to a project, refer to [this documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes).
-- Modify the action metadata in the [`action.yml`](./action.yml) file according to the new project specifications. For more details on the action metadata, refer to [this documentation](https://docs.github.com/en/actions/sharing-automations/creating-actions/metadata-syntax-for-github-actions).
-
-> Note: You can also search for `TODO` comments for a list of information that needs to be replaced.
-
-### Set Up Tools
-
-This template uses [pnpm](https://pnpm.io/) as the package manager. If pnpm is not installed, follow [this guide](https://pnpm.io/installation) to install it. Then, install the project dependencies with:
-
-```sh
-pnpm install
+```yaml
+- name: Delete sticky disk
+  uses: useblacksmith/stickydisk-delete@v1
+  with:
+    name: my-cache-disk
 ```
 
-For more information on pnpm, including adding dependencies or running tools, refer to [this documentation](https://pnpm.io/pnpm-cli).
+### Delete Multiple Disks
 
-### Developing the Action
+Delete multiple sticky disks using pattern matching:
 
-Write the logic for the action in the [`src/main.ts`](./src/main.ts) file according to the project requirements. If you're new to [TypeScript](https://www.typescriptlang.org/), refer to [this documentation](https://www.typescriptlang.org/docs/) for guidance.
-
-If the action will support pre- and post-steps, additional files like `src/pre.ts` and `src/post.ts` can be added. Just make sure to update the Rollup configuration in the [`rollup.config.js`](./rollup.config.js) file and the action metadata in the [`action.yml`](./action.yml) file.
-
-### Testing the Action
-
-Test files in this template are named `*.test.ts` and typically correspond to the source files being tested. This template uses [Vitest](https://vitest.dev/) as the testing framework. For more information on testing with Vitest, refer to [this documentation](https://vitest.dev/guide/).
-
-After creating your test files, run tests with:
-
-```sh
-pnpm test
+```yaml
+- name: Clean up test disks
+  uses: useblacksmith/stickydisk-delete@v1
+  with:
+    name: test-disk-*
 ```
 
-Additionally, you can test the action by running it directly from the GitHub workflow as specified in the [`.github/workflows/test.yaml`](./.github/workflows/test.yaml) file.
+### Complete Workflow Example
 
-### Release the Action
+Here's a complete example showing how to use sticky disks for caching and then clean them up:
 
-When the project is complete, release and publish it from the project repository page on GitHub. For more information on releasing a project, refer to [this documentation](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases). For more information on publishing GitHub actions, refer to [this documentation](https://docs.github.com/en/actions/sharing-automations/creating-actions/publishing-actions-in-github-marketplace).
+```yaml
+name: Build with Sticky Disk
+on: push
+
+jobs:
+  build:
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    steps:
+      - name: Create sticky disk for dependencies
+        uses: useblacksmith/stickydisk@v1
+        with:
+          name: deps-cache
+          size: 10GB
+
+      - uses: actions/checkout@v4
+
+      - name: Use cached dependencies
+        run: |
+          # Your build steps here using the sticky disk
+
+  cleanup:
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    needs: build
+    if: always()
+    steps:
+      - name: Delete sticky disk
+        uses: useblacksmith/stickydisk-delete@v1
+        with:
+          name: deps-cache
+```
+
+## Inputs
+
+| Input  | Description                                     | Required | Default |
+| ------ | ----------------------------------------------- | -------- | ------- |
+| `name` | Name or pattern of the sticky disk(s) to delete | Yes      | -       |
+
+## How It Works
+
+1. The action connects to the Blacksmith storage management system
+2. Identifies sticky disks matching the provided name or pattern
+3. Safely unmounts and deletes the specified disks
+4. Cleans up associated metadata and cache entries
+
+## When to Use
+
+- **End of workflow cleanup**: Delete temporary sticky disks after your workflow completes
+- **Scheduled maintenance**: Run periodic cleanup jobs to remove old or unused disks
+- **Before creating new disks**: Clear existing disks before creating fresh ones
+- **Cost management**: Remove large disks that are no longer needed to optimize storage costs
+
+## Compatibility
+
+This action is specifically designed for Blacksmith runners and requires:
+
+- Blacksmith runner environment
+- Prior creation of sticky disks using `useblacksmith/stickydisk`
+- Appropriate permissions to manage storage resources
+
+## Related Actions
+
+- [useblacksmith/stickydisk](https://github.com/useblacksmith/stickydisk) - Create and mount sticky disks
+- [useblacksmith/cache](https://github.com/useblacksmith/cache) - Alternative caching solution
+
+## Support
+
+For issues, feature requests, or questions, please open an issue in the [GitHub repository](https://github.com/useblacksmith/stickydisk-delete/issues).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
