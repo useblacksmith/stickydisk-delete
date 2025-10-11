@@ -43,6 +43,10 @@ jobs:
           echo "Total files in cache:"
           find ./demo-cache -type f | wc -l
 
+      - name: Sleep 30s
+        run: |
+          sleep 30
+
       - name: Delete Stickydisk
         uses: useblacksmith/stickydisk-delete@main
         with:
